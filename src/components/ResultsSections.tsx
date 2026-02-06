@@ -3,8 +3,10 @@ import { Building2, Code, Target, MessageCircle, BookOpen, ChevronDown, ChevronR
 import { AnalysisResult } from "@/types/analysis";
 import { CitationBadge } from "@/components/CitationBadge";
 
-interface ResultsSectionsProps {
+export interface ResultsSectionsProps {
   result: AnalysisResult;
+  /** When false, all sections start collapsed (e.g. when opening from history). */
+  sectionsDefaultOpen?: boolean;
 }
 
 function Section({
@@ -50,10 +52,10 @@ function Section({
   );
 }
 
-export function ResultsSections({ result }: ResultsSectionsProps) {
+export function ResultsSections({ result, sectionsDefaultOpen = true }: ResultsSectionsProps) {
   return (
     <div className="space-y-4">
-      <Section icon={Building2} title={`Company Intelligence — ${result.companyName}`} defaultOpen delay={100}>
+      <Section icon={Building2} title={`Company Intelligence — ${result.companyName}`} defaultOpen={sectionsDefaultOpen} delay={100}>
         <div className="space-y-3">
           {result.companyIntelligence.map((insight, i) => (
             <div key={i} className="flex flex-col gap-1.5">
@@ -64,7 +66,7 @@ export function ResultsSections({ result }: ResultsSectionsProps) {
         </div>
       </Section>
 
-      <Section icon={Code} title="Technology Deep Dive" delay={200}>
+      <Section icon={Code} title="Technology Deep Dive" defaultOpen={false} delay={200}>
         <div className="space-y-6">
           {result.techAnalysis.map((tech) => (
             <div key={tech.name}>
@@ -82,7 +84,7 @@ export function ResultsSections({ result }: ResultsSectionsProps) {
         </div>
       </Section>
 
-      <Section icon={Target} title="Interview Focus Areas" delay={300}>
+      <Section icon={Target} title="Interview Focus Areas" defaultOpen={false} delay={300}>
         <div className="space-y-3">
           {result.interviewFocus.map((focus, i) => (
             <div key={i} className="flex items-start gap-3 rounded-lg bg-secondary/30 px-4 py-3">
@@ -101,7 +103,7 @@ export function ResultsSections({ result }: ResultsSectionsProps) {
         </div>
       </Section>
 
-      <Section icon={MessageCircle} title="Practice Questions" delay={400}>
+      <Section icon={MessageCircle} title="Practice Questions" defaultOpen={false} delay={400}>
         <div className="space-y-3">
           {result.practiceQuestions.map((q, i) => (
             <QuestionCard key={i} question={q} index={i + 1} />
@@ -109,7 +111,7 @@ export function ResultsSections({ result }: ResultsSectionsProps) {
         </div>
       </Section>
 
-      <Section icon={BookOpen} title="Key Resources" delay={500}>
+      <Section icon={BookOpen} title="Key Resources" defaultOpen={false} delay={500}>
         <div className="grid gap-3 sm:grid-cols-2">
           {result.resources.map((resource, i) => (
             <a

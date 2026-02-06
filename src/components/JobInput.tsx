@@ -16,7 +16,7 @@ export function JobInput({ value, onChange, onAnalyze, isLoading }: JobInputProp
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && value.trim()) {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && value.trim() && !isLoading) {
       e.preventDefault();
       onAnalyze(value);
     }

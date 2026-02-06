@@ -12,39 +12,79 @@ import { AlertTriangle } from "lucide-react";
 import { SavedAnalysis } from "@/types/analysis";
 
 export default function Prepare() {
-  const { state, steps, result, progress, error, analyze, reset, loadResult, savedInput, setSavedInput } = useAnalysis();
+  const { state, steps, result, resultSource, progress, error, analyze, reset, loadResult, savedInput, setSavedInput } = useAnalysis();
   const { save } = useSavedAnalyses();
   const { toast } = useToast();
   const resultsRef = useRef<HTMLDivElement>(null);
+  const pageTopRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
-  const loadedFromHistoryRef = useRef(false);
   const didAutoSaveRef = useRef(false);
+
+  // When navigating to Prepare, scroll to absolute top (instant; repeat after 100ms for late layout)
+  useEffect(() => {
+    const scrollToTop = () => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      pageTopRef.current?.scrollIntoView({ block: "start", behavior: "auto" });
+    };
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const rafId = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        scrollToTop();
+        timeoutId = setTimeout(scrollToTop, 100);
+      });
+    });
+    return () => {
+      cancelAnimationFrame(rafId);
+      if (timeoutId != null) clearTimeout(timeoutId);
+    };
+  }, [location.pathname]);
 
   // Load from history navigation
   useEffect(() => {
     const loaded = (location.state as { loaded?: SavedAnalysis })?.loaded;
     if (loaded) {
-      loadedFromHistoryRef.current = true;
       setSavedInput(loaded.jobDescription);
       loadResult(loaded.results);
       window.history.replaceState({}, document.title);
     }
   }, [location.state, setSavedInput, loadResult]);
 
-  // Auto-save to history when a new analysis completes (not when loaded from history)
+  // When opening a result from history, scroll to top of results panel after paint
   useEffect(() => {
-    if (state !== "complete" || !result || !savedInput.trim()) return;
-    if (loadedFromHistoryRef.current || didAutoSaveRef.current) return;
+    if (resultSource !== "history" || !resultsRef.current) return;
+    const el = resultsRef.current;
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const top = el.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({ top: Math.max(0, top - 24), behavior: "smooth" });
+      });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [resultSource]);
+
+  // Auto-save to history only when a fresh analysis completes (never when result came from history)
+  useEffect(() => {
+    if (state !== "complete" || resultSource !== "streaming" || !result || !savedInput.trim()) return;
+    if (didAutoSaveRef.current) return;
     save(savedInput, result);
     didAutoSaveRef.current = true;
     toast({ title: "Analysis saved", description: "View it anytime from History." });
-  }, [state, result, savedInput, save, toast]);
+  }, [state, resultSource, result, savedInput, save, toast]);
 
+  // When a fresh analysis completes, scroll so the top of the results panel is visible
   useEffect(() => {
-    if (state === "complete" && resultsRef.current) {
-      resultsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [state]);
+    if (state !== "complete" || resultSource !== "streaming" || !resultsRef.current) return;
+    const el = resultsRef.current;
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const top = el.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({ top: top - 24, behavior: "smooth" });
+      });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [state, resultSource, result]);
 
   // Show toast on error
   useEffect(() => {
@@ -58,7 +98,6 @@ export default function Prepare() {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         didAutoSaveRef.current = false;
-        loadedFromHistoryRef.current = false;
         reset();
         setSavedInput("");
       }
@@ -68,20 +107,18 @@ export default function Prepare() {
   }, [reset, setSavedInput]);
 
   const handleAnalyze = (jobDescription: string) => {
-    loadedFromHistoryRef.current = false;
     didAutoSaveRef.current = false;
     analyze(jobDescription);
   };
 
   const handleReset = () => {
     didAutoSaveRef.current = false;
-    loadedFromHistoryRef.current = false;
     reset();
     setSavedInput("");
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-8">
+    <div ref={pageTopRef} className="container mx-auto px-4 sm:px-6 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         <div className={`lg:col-span-2 ${state === "complete" ? "lg:sticky lg:top-20 lg:self-start" : ""}`}>
           <div className="rounded-xl border border-border/50 bg-card p-5 shadow-card">
@@ -111,7 +148,7 @@ export default function Prepare() {
           )}
           {state === "complete" && result && (
             <div className="space-y-4">
-              <ResultsSections result={result} />
+              <ResultsSections result={result} sectionsDefaultOpen={resultSource !== "history"} />
               <ActionBar result={result} onReset={handleReset} />
             </div>
           )}
