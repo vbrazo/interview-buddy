@@ -8,11 +8,11 @@ import { useAnalysis } from "@/hooks/useAnalysis";
 import { useSavedAnalyses } from "@/hooks/useSavedAnalyses";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Save } from "lucide-react";
+import { Save, AlertTriangle } from "lucide-react";
 import { SavedAnalysis } from "@/types/analysis";
 
 export default function Prepare() {
-  const { state, steps, result, progress, analyze, reset, loadResult, savedInput, setSavedInput } = useAnalysis();
+  const { state, steps, result, progress, error, analyze, reset, loadResult, savedInput, setSavedInput } = useAnalysis();
   const { save } = useSavedAnalyses();
   const { toast } = useToast();
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -34,6 +34,13 @@ export default function Prepare() {
       resultsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [state]);
+
+  // Show toast on error
+  useEffect(() => {
+    if (state === "error" && error) {
+      toast({ title: "Analysis failed", description: error, variant: "destructive" });
+    }
+  }, [state, error, toast]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -70,6 +77,18 @@ export default function Prepare() {
         <div className="lg:col-span-3" ref={resultsRef}>
           {state === "idle" && <EmptyState />}
           {state === "streaming" && <StreamingDisplay steps={steps} progress={progress} />}
+          {state === "error" && (
+            <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center px-6">
+              <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-destructive/30 bg-destructive/10">
+                <AlertTriangle className="h-8 w-8 text-destructive" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Something went wrong</h3>
+              <p className="text-sm text-muted-foreground max-w-sm mb-6">{error || "An unexpected error occurred. Please try again."}</p>
+              <Button variant="secondary" size="sm" onClick={() => { reset(); }}>
+                Try Again
+              </Button>
+            </div>
+          )}
           {state === "complete" && result && (
             <div className="space-y-4">
               <ResultsSections result={result} />

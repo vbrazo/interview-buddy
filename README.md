@@ -1,73 +1,112 @@
-# Welcome to your Lovable project
+# Interview Buddy
 
-## Project info
+AI-powered interview preparation tool that transforms job descriptions into comprehensive, citation-backed research reports. Paste a job description, and get real-time company intelligence, technology deep-dives, interview focus areas, and practice questions -- all backed by live web research via the You.com APIs.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Tech Stack
 
-## How can I edit this code?
+| Layer    | Technology                                          |
+| -------- | --------------------------------------------------- |
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui |
+| Backend  | Python 3.11+, FastAPI, uvicorn                      |
+| APIs     | You.com Search API, You.com Chat Completions        |
 
-There are several ways of editing your application.
+## Quick Start
 
-**Use Lovable**
+### 1. Clone and install frontend dependencies
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+```bash
+cd interview-buddy
+npm install
+```
 
-Changes made via Lovable will be committed automatically to this repo.
+### 2. Set up the backend
 
-**Use your preferred IDE**
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 3. Configure environment
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+```bash
+cp .env.example .env
+# Edit .env and add your You.com API key
+```
 
-Follow these steps:
+### 4. Run both servers
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+In one terminal -- backend:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+```bash
+cd interview-buddy/backend
+source .venv/bin/activate
+uvicorn app.main:app --reload --port 8000
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+In another terminal -- frontend:
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+cd interview-buddy
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Open **http://localhost:8080** and paste a job description to get started.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## How It Works
 
-**Use GitHub Codespaces**
+1. **Paste a job description** into the input textarea.
+2. The backend **extracts metadata** (company name, role title, key technologies).
+3. **You.com Search API** is called to research the company and each technology.
+4. **You.com Chat Completions** synthesises all research into a structured report.
+5. The frontend streams progress in real-time via **Server-Sent Events**.
+6. You get a full interview prep report you can save, copy, or export as Markdown.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Project Structure
 
-## What technologies are used for this project?
+```
+interview-buddy/
+├── backend/
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── main.py          # App factory, middleware, lifespan
+│   │   ├── config.py        # Centralised settings (env vars)
+│   │   ├── models.py        # Pydantic request/response models
+│   │   ├── routes.py        # API route handlers
+│   │   ├── pipeline.py      # Analysis pipeline orchestrator
+│   │   ├── you_client.py    # You.com API client (Search + Chat)
+│   │   ├── job_parser.py    # Job description metadata extractor
+│   │   ├── prompts.py       # LLM prompt templates
+│   │   └── sse.py           # SSE event formatting helpers
+│   ├── requirements.txt
+│   └── .env.example
+├── src/
+│   ├── components/          # React UI components
+│   ├── hooks/
+│   │   ├── useAnalysis.ts   # SSE streaming hook
+│   │   └── useSavedAnalyses.ts
+│   ├── pages/               # Route pages
+│   ├── types/analysis.ts    # Shared TypeScript types
+│   └── data/mockData.ts     # Example data for demos
+├── index.html
+├── vite.config.ts
+├── tailwind.config.ts
+└── package.json
+```
 
-This project is built with:
+## API Endpoints
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+| Method | Path           | Description                                      |
+| ------ | -------------- | ------------------------------------------------ |
+| POST   | `/api/prepare` | Accepts `{ jobDescription }`, returns SSE stream |
+| GET    | `/api/health`  | Health check                                     |
 
-## How can I deploy this project?
+## You.com API Usage
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+- **Search API** (`GET https://api.ydc-index.io/search`) -- company news, tech stack research
+- **Chat Completions** (`POST https://api.you.com/v1/chat/completions`) -- synthesises research into structured interview prep
 
-## Can I connect a custom domain to my Lovable project?
+## License
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+MIT
