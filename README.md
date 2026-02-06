@@ -135,6 +135,65 @@ Get a free API key at [you.com/platform](https://you.com/platform). For Smart AP
 - **403 on Search** — Ensure your key is from [you.com/platform](https://you.com/platform). The app will automatically retry with the legacy search URL. You can force the legacy endpoint by setting `YOU_SEARCH_URL=https://api.ydc-index.io/search` in `.env` (and the client will use `num_web_results` for that URL).
 - **404 on synthesis** — The app uses the Smart API at `chat-api.you.com/smart`, not `api.you.com/v1/chat/completions`. If you still see 404, check that your key has Smart/Research access or email [api@you.com](mailto:api@you.com).
 
+## Heroku Deployment (Full-Stack)
+
+This app is configured to deploy as a full-stack application on Heroku, serving both the React frontend and FastAPI backend from a single dyno.
+
+### Prerequisites
+
+1. Heroku CLI installed
+2. Heroku account
+3. Git repository
+
+### Setup Steps
+
+1. **Create a Heroku app** (if you haven't already):
+   ```bash
+   heroku create your-app-name
+   ```
+
+2. **Set buildpacks** (Node.js first, then Python):
+   ```bash
+   heroku buildpacks:add heroku/nodejs --index 1
+   heroku buildpacks:add heroku/python --index 2
+   ```
+   
+   Or use the `.buildpacks` file (already included) - Heroku will read it automatically.
+
+3. **Set environment variables** (from your `backend/.env`):
+   ```bash
+   heroku config:set YOU_API_KEY=your_api_key_here
+   # Add any other env vars you need (YOU_SEARCH_URL, etc.)
+   ```
+
+4. **Important: Enable dev dependencies for build**:
+   ```bash
+   heroku config:set NPM_CONFIG_PRODUCTION=false
+   ```
+   This ensures Vite and other build tools (in devDependencies) are installed during the build.
+
+5. **Deploy**:
+   ```bash
+   git push heroku main
+   # or
+   git push heroku master
+   ```
+
+### How It Works
+
+- **Build phase**: Node.js buildpack installs dependencies and runs `npm run build` (via `heroku-postbuild` script), creating the `dist/` folder
+- **Python phase**: Python buildpack installs backend dependencies from `requirements.txt`
+- **Runtime**: FastAPI serves:
+  - API routes at `/api/*`
+  - Static frontend files from `dist/`
+  - `index.html` for all other routes (SPA routing)
+
+### Troubleshooting
+
+- **Build fails with "vite: command not found"**: Make sure `NPM_CONFIG_PRODUCTION=false` is set
+- **Frontend not loading**: Check that `dist/` was created during build (check build logs)
+- **API routes return 404**: Ensure your routes are prefixed with `/api/` in the frontend code
+
 ## License
 
 MIT

@@ -1,0 +1,10 @@
+#!/bin/bash
+# Heroku build script - builds frontend before Python install
+
+set -e
+
+echo "Building frontend..."
+npm install
+npm run build
+
+echo "Frontend build complete!"
