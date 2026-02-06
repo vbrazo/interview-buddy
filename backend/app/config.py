@@ -16,9 +16,9 @@ class Settings:
 
     you_api_key: str = os.getenv("YOU_API_KEY", "")
 
-    # You.com API endpoints
-    you_search_url: str = "https://api.ydc-index.io/search"
-    you_chat_url: str = "https://api.you.com/v1/chat/completions"
+    # You.com API endpoints (current Search v1 + Research legacy)
+    you_search_url: str = "https://ydc-index.io/v1/search"
+    you_research_url: str = "https://chat-api.you.com/research"
 
     # Defaults
     you_chat_model: str = "gpt-4o-mini"
