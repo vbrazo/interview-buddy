@@ -11,12 +11,12 @@ import json
 import logging
 from typing import AsyncGenerator
 
-from app import you_client
 from app.config import settings
-from app.job_parser import extract_metadata
 from app.models import AnalysisResult, SearchHit
-from app.prompts import build_synthesis_prompt
-from app.sse import (
+from app.services import you_client
+from app.services.job_parser import extract_metadata
+from app.services.prompts import build_synthesis_prompt
+from app.services.sse import (
     error_event,
     progress_event,
     result_event,

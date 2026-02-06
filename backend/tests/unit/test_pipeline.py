@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from app.models import AnalysisResult, SearchHit
-from app.pipeline import run
+from app.services.pipeline import run
 
 
 def _minimal_analysis_json(company: str = "Acme") -> str:
@@ -48,8 +48,8 @@ async def test_run_happy_path_yields_steps_progress_result():
         return _minimal_analysis_json("Acme")
 
     events: list[str] = []
-    with patch("app.pipeline.you_client.search", side_effect=mock_search):
-        with patch("app.pipeline.you_client.research", side_effect=mock_research):
+    with patch("app.services.pipeline.you_client.search", side_effect=mock_search):
+        with patch("app.services.pipeline.you_client.research", side_effect=mock_research):
             async for chunk in run("Senior Engineer at Acme. Python, React."):
                 events.append(chunk)
 
@@ -80,8 +80,8 @@ async def test_run_synthesis_error_yields_error_event():
         return "not valid json {{{"
 
     events: list[str] = []
-    with patch("app.pipeline.you_client.search", side_effect=mock_search):
-        with patch("app.pipeline.you_client.research", side_effect=mock_research):
+    with patch("app.services.pipeline.you_client.search", side_effect=mock_search):
+        with patch("app.services.pipeline.you_client.research", side_effect=mock_research):
             async for chunk in run("Engineer at Acme."):
                 events.append(chunk)
 
@@ -106,8 +106,8 @@ async def test_run_synthesis_exception_yields_error_event():
         raise RuntimeError("API down")
 
     events: list[str] = []
-    with patch("app.pipeline.you_client.search", side_effect=mock_search):
-        with patch("app.pipeline.you_client.research", side_effect=mock_research):
+    with patch("app.services.pipeline.you_client.search", side_effect=mock_search):
+        with patch("app.services.pipeline.you_client.research", side_effect=mock_research):
             async for chunk in run("Engineer at Acme."):
                 events.append(chunk)
 

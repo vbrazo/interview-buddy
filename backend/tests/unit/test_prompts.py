@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from app.models import SearchHit
-from app.prompts import build_synthesis_prompt
+from app.services.prompts import build_synthesis_prompt
 
 
 def test_build_synthesis_prompt_contains_job_description():

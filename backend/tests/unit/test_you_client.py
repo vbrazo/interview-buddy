@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app import you_client
 from app.models import SearchHit
+from app.services import you_client
 
 
 @pytest.fixture

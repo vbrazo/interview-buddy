@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.job_parser import extract_metadata
+from app.services.job_parser import extract_metadata
 
 
 def test_extract_company_at_pattern():

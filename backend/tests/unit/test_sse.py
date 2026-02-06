@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from app.sse import (
+from app.services.sse import (
     PIPELINE_STEPS,
     error_event,
     event,

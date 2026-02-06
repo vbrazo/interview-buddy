@@ -12,8 +12,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app import you_client
 from app.routes import router
+from app.services import you_client
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -5,7 +5,7 @@ import { useSavedAnalyses } from "@/hooks/useSavedAnalyses";
 import { useToast } from "@/hooks/use-toast";
 
 export default function History() {
-  const { items, remove } = useSavedAnalyses();
+  const { items, remove, loading } = useSavedAnalyses();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -13,6 +13,14 @@ export default function History() {
     remove(id);
     toast({ title: "Deleted", description: "Analysis removed from history." });
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-6 py-20 flex justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading history…</div>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (

@@ -72,13 +72,20 @@ interview-buddy/
 │   │   ├── __init__.py
 │   │   ├── main.py          # App factory, middleware, lifespan
 │   │   ├── config.py        # Centralised settings (env vars)
-│   │   ├── models.py        # Pydantic request/response models
 │   │   ├── routes.py        # API route handlers
-│   │   ├── pipeline.py      # Analysis pipeline orchestrator
-│   │   ├── you_client.py    # You.com API client (Search + Chat)
-│   │   ├── job_parser.py    # Job description metadata extractor
-│   │   ├── prompts.py       # LLM prompt templates
-│   │   └── sse.py           # SSE event formatting helpers
+│   │   ├── models/          # Pydantic models (split by domain)
+│   │   │   ├── __init__.py  # Re-exports all models
+│   │   │   ├── requests.py  # PrepareRequest
+│   │   │   ├── job_metadata.py
+│   │   │   ├── search.py    # SearchHit
+│   │   │   └── analysis.py  # AnalysisResult, SavedAnalysis, etc.
+│   │   └── services/        # Business logic and integrations
+│   │       ├── job_parser.py    # Job description metadata extractor
+│   │       ├── history_store.py # In-memory store for /api/history
+│   │       ├── you_client.py    # You.com API client (Search + Chat)
+│   │       ├── pipeline.py      # Analysis pipeline orchestrator
+│   │       ├── prompts.py       # LLM prompt templates
+│   │       └── sse.py           # SSE event formatting helpers
 │   ├── requirements.txt
 │   └── .env.example
 ├── src/
@@ -97,10 +104,18 @@ interview-buddy/
 
 ## API Endpoints
 
-| Method | Path           | Description                                      |
-| ------ | -------------- | ------------------------------------------------ |
-| POST   | `/api/prepare` | Accepts `{ jobDescription }`, returns SSE stream |
-| GET    | `/api/health`  | Health check                                     |
+| Method | Path             | Description                                                |
+| ------ | ---------------- | ---------------------------------------------------------- |
+| POST   | `/api/prepare`   | Accepts `{ jobDescription }`, returns SSE stream           |
+| GET    | `/api/health`    | Health check                                               |
+| GET    | `/api/history`   | List all saved analyses (newest first)                     |
+| POST   | `/api/history`   | Save an analysis (`{ jobDescription, results }`)           |
+| GET    | `/api/history/{id}` | Get one saved analysis by id                            |
+| DELETE | `/api/history/{id}` | Delete a saved analysis                                |
+
+History is stored in memory on the backend (no persistence across restarts unless you replace the store with a database). The frontend uses these endpoints when available and falls back to localStorage when the API is unavailable.
+
+When deployed as a full-stack app (e.g. Heroku), the same server also serves the frontend: static assets at `/assets/*`, root-level files (e.g. favicon, `robots.txt`), and `index.html` for all other paths (SPA routing). API routes remain under `/api/*`.
 
 ## Backend testing
 

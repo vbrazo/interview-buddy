@@ -17,7 +17,7 @@ import httpx
 
 from app.config import settings
 from app.models import SearchHit
-from app.prompts import SYSTEM_PROMPT
+from app.services.prompts import SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
