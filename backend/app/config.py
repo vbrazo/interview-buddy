@@ -16,12 +16,17 @@ class Settings:
 
     you_api_key: str = os.getenv("YOU_API_KEY", "")
 
-    # You.com API endpoints (current Search v1 + Research legacy)
-    you_search_url: str = "https://ydc-index.io/v1/search"
-    you_research_url: str = "https://chat-api.you.com/research"
+    # You.com API endpoints (see docs.you.com/api-reference)
+    # Search v1: GET .../v1/search (X-API-Key, query, count)
+    you_search_url: str = os.getenv("YOU_SEARCH_URL", "https://ydc-index.io/v1/search")
+    # Search legacy fallback if v1 returns 403
+    you_search_legacy_url: str = "https://api.ydc-index.io/search"
+    # Express Agent for synthesis: POST .../v1/agents/runs (Bearer token, agent, input)
+    you_agents_runs_url: str = os.getenv(
+        "YOU_AGENTS_RUNS_URL", "https://api.you.com/v1/agents/runs"
+    )
 
     # Defaults
-    you_chat_model: str = "gpt-4o-mini"
     search_timeout: float = 30.0
     chat_timeout: float = 120.0
     max_search_results: int = 5

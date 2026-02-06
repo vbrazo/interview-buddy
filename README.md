@@ -104,8 +104,17 @@ interview-buddy/
 
 ## You.com API Usage
 
-- **Search API** (`GET https://api.ydc-index.io/search`) -- company news, tech stack research
-- **Chat Completions** (`POST https://api.you.com/v1/chat/completions`) -- synthesises research into structured interview prep
+The backend uses the [documented You.com APIs](https://documentation.you.com/):
+
+- **Search** — Tries `GET https://ydc-index.io/v1/search` (query, count). If that returns 403, it falls back to the legacy `GET https://api.ydc-index.io/search` (query, num_web_results). Both use the `X-API-Key` header.
+- **Synthesis** — `POST https://chat-api.you.com/smart` (Smart API, legacy) with `X-API-Key` and body `{ query, chat_id, instructions }` to produce the structured interview prep JSON.
+
+Get a free API key at [you.com/platform](https://you.com/platform). For Smart API access, you may need to contact [api@you.com](mailto:api@you.com) if you see 403 on the `/smart` endpoint.
+
+### Troubleshooting 403 / 404
+
+- **403 on Search** — Ensure your key is from [you.com/platform](https://you.com/platform). The app will automatically retry with the legacy search URL. You can force the legacy endpoint by setting `YOU_SEARCH_URL=https://api.ydc-index.io/search` in `.env` (and the client will use `num_web_results` for that URL).
+- **404 on synthesis** — The app uses the Smart API at `chat-api.you.com/smart`, not `api.you.com/v1/chat/completions`. If you still see 404, check that your key has Smart/Research access or email [api@you.com](mailto:api@you.com).
 
 ## License
 

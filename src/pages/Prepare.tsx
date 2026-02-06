@@ -17,17 +17,28 @@ export default function Prepare() {
   const { toast } = useToast();
   const resultsRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+  const loadedFromHistoryRef = useRef(false);
+  const didAutoSaveRef = useRef(false);
 
   // Load from history navigation
   useEffect(() => {
     const loaded = (location.state as { loaded?: SavedAnalysis })?.loaded;
     if (loaded) {
+      loadedFromHistoryRef.current = true;
       setSavedInput(loaded.jobDescription);
       loadResult(loaded.results);
-      // Clear navigation state
       window.history.replaceState({}, document.title);
     }
   }, [location.state, setSavedInput, loadResult]);
+
+  // Auto-save to history when a new analysis completes (not when loaded from history)
+  useEffect(() => {
+    if (state !== "complete" || !result || !savedInput.trim()) return;
+    if (loadedFromHistoryRef.current || didAutoSaveRef.current) return;
+    save(savedInput, result);
+    didAutoSaveRef.current = true;
+    toast({ title: "Analysis saved", description: "View it anytime from History." });
+  }, [state, result, savedInput, save, toast]);
 
   useEffect(() => {
     if (state === "complete" && resultsRef.current) {
@@ -46,6 +57,8 @@ export default function Prepare() {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
+        didAutoSaveRef.current = false;
+        loadedFromHistoryRef.current = false;
         reset();
         setSavedInput("");
       }
@@ -60,6 +73,19 @@ export default function Prepare() {
     toast({ title: "Analysis saved!", description: "View it anytime from your History." });
   };
 
+  const handleAnalyze = (jobDescription: string) => {
+    loadedFromHistoryRef.current = false;
+    didAutoSaveRef.current = false;
+    analyze(jobDescription);
+  };
+
+  const handleReset = () => {
+    didAutoSaveRef.current = false;
+    loadedFromHistoryRef.current = false;
+    reset();
+    setSavedInput("");
+  };
+
   return (
     <div className="container mx-auto px-4 sm:px-6 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
@@ -68,7 +94,7 @@ export default function Prepare() {
             <JobInput
               value={savedInput}
               onChange={setSavedInput}
-              onAnalyze={analyze}
+              onAnalyze={handleAnalyze}
               isLoading={state === "streaming"}
             />
           </div>
@@ -98,7 +124,7 @@ export default function Prepare() {
                   Save This Analysis
                 </Button>
               </div>
-              <ActionBar result={result} onReset={() => { reset(); setSavedInput(""); }} />
+              <ActionBar result={result} onReset={handleReset} />
             </div>
           )}
         </div>
