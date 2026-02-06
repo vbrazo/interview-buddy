@@ -48,3 +48,12 @@ export interface AnalysisResult {
   practiceQuestions: PracticeQuestion[];
   resources: Resource[];
 }
+
+export interface SavedAnalysis {
+  id: string;
+  jobDescription: string;
+  companyName: string;
+  roleTitle: string;
+  results: AnalysisResult;
+  savedAt: number;
+}
