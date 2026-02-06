@@ -6,7 +6,7 @@ import { Footer } from "@/components/Footer";
 export function Layout() {
   return (
     <AnalysisProvider>
-      <div className="min-h-screen max-h-screen bg-background flex flex-col overflow-y-auto">
+      <div data-scroll-container className="min-h-screen max-h-screen bg-background flex flex-col overflow-y-auto">
         <Navigation />
         <main className="flex-1 min-h-0">
           <Outlet />

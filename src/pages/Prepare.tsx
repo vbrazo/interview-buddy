@@ -20,12 +20,19 @@ export default function Prepare() {
   const location = useLocation();
   const didAutoSaveRef = useRef(false);
 
+  const scrollContainer = () => document.querySelector<HTMLElement>("[data-scroll-container]") ?? document.documentElement;
+
   // When navigating to Prepare, scroll to absolute top (instant; repeat after 100ms for late layout)
   useEffect(() => {
     const scrollToTop = () => {
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
+      const el = scrollContainer();
+      if (el === document.documentElement) {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      } else {
+        el.scrollTop = 0;
+      }
       pageTopRef.current?.scrollIntoView({ block: "start", behavior: "auto" });
     };
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -41,6 +48,15 @@ export default function Prepare() {
     };
   }, [location.pathname]);
 
+  // On full page refresh, clear both left (input) and right (results) so the page is fully reset
+  useEffect(() => {
+    const nav = window.performance.getEntriesByType?.("navigation")[0] as PerformanceNavigationTiming | undefined;
+    if (nav?.type === "reload") {
+      setSavedInput("");
+      reset();
+    }
+  }, [setSavedInput, reset]);
+
   // Load from history navigation
   useEffect(() => {
     const loaded = (location.state as { loaded?: SavedAnalysis })?.loaded;
@@ -55,10 +71,17 @@ export default function Prepare() {
   useEffect(() => {
     if (resultSource !== "history" || !resultsRef.current) return;
     const el = resultsRef.current;
+    const container = scrollContainer();
     const id = requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        const top = el.getBoundingClientRect().top + window.scrollY;
-        window.scrollTo({ top: Math.max(0, top - 24), behavior: "smooth" });
+        const rect = el.getBoundingClientRect();
+        const top = rect.top + (container === document.documentElement ? window.scrollY : container.scrollTop);
+        const target = Math.max(0, top - 24);
+        if (container === document.documentElement) {
+          window.scrollTo({ top: target, behavior: "smooth" });
+        } else {
+          container.scrollTo({ top: target, behavior: "smooth" });
+        }
       });
     });
     return () => cancelAnimationFrame(id);
@@ -77,10 +100,17 @@ export default function Prepare() {
   useEffect(() => {
     if (state !== "complete" || resultSource !== "streaming" || !resultsRef.current) return;
     const el = resultsRef.current;
+    const container = scrollContainer();
     const id = requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        const top = el.getBoundingClientRect().top + window.scrollY;
-        window.scrollTo({ top: top - 24, behavior: "smooth" });
+        const rect = el.getBoundingClientRect();
+        const top = rect.top + (container === document.documentElement ? window.scrollY : container.scrollTop);
+        const target = Math.max(0, top - 24);
+        if (container === document.documentElement) {
+          window.scrollTo({ top: target, behavior: "smooth" });
+        } else {
+          container.scrollTo({ top: target, behavior: "smooth" });
+        }
       });
     });
     return () => cancelAnimationFrame(id);
@@ -148,7 +178,7 @@ export default function Prepare() {
           )}
           {state === "complete" && result && (
             <div className="space-y-4">
-              <ResultsSections result={result} sectionsDefaultOpen={resultSource !== "history"} />
+              <ResultsSections result={result} sectionsDefaultOpen={false} />
               <ActionBar result={result} onReset={handleReset} />
             </div>
           )}
