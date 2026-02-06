@@ -102,6 +102,25 @@ interview-buddy/
 | POST   | `/api/prepare` | Accepts `{ jobDescription }`, returns SSE stream |
 | GET    | `/api/health`  | Health check                                     |
 
+## Backend testing
+
+From the `backend` directory with your venv activated:
+
+```bash
+cd backend
+source .venv/bin/activate   # if not already
+pytest
+```
+
+Run only unit or integration tests:
+
+```bash
+pytest tests/unit -v
+pytest tests/integration -v
+```
+
+Tests use mocks for the You.com API; no real API key is needed in CI (a dummy key is set in `tests/conftest.py`).
+
 ## You.com API Usage
 
 The backend uses the [documented You.com APIs](https://documentation.you.com/):

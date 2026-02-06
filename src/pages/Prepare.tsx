@@ -8,7 +8,7 @@ import { useAnalysis } from "@/hooks/useAnalysis";
 import { useSavedAnalyses } from "@/hooks/useSavedAnalyses";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Save, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { SavedAnalysis } from "@/types/analysis";
 
 export default function Prepare() {
@@ -67,12 +67,6 @@ export default function Prepare() {
     return () => window.removeEventListener("keydown", handler);
   }, [reset, setSavedInput]);
 
-  const handleSave = () => {
-    if (!result) return;
-    save(savedInput, result);
-    toast({ title: "Analysis saved!", description: "View it anytime from your History." });
-  };
-
   const handleAnalyze = (jobDescription: string) => {
     loadedFromHistoryRef.current = false;
     didAutoSaveRef.current = false;
@@ -118,12 +112,6 @@ export default function Prepare() {
           {state === "complete" && result && (
             <div className="space-y-4">
               <ResultsSections result={result} />
-              <div className="flex flex-wrap items-center gap-3">
-                <Button variant="secondary" size="sm" onClick={handleSave} className="gap-2 text-xs">
-                  <Save className="h-3.5 w-3.5" />
-                  Save This Analysis
-                </Button>
-              </div>
               <ActionBar result={result} onReset={handleReset} />
             </div>
           )}
