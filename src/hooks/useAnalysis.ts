@@ -45,6 +45,14 @@ export function useAnalysis() {
     setTimeout(processStep, 400);
   }, []);
 
+  const loadResult = useCallback((r: AnalysisResult) => {
+    abortRef.current = true;
+    setState("complete");
+    setSteps([]);
+    setResult(r);
+    setProgress(100);
+  }, []);
+
   const reset = useCallback(() => {
     abortRef.current = true;
     setState("idle");
@@ -62,5 +70,5 @@ export function useAnalysis() {
     try { localStorage.setItem("interview-prep-input", savedInput); } catch {}
   }, [savedInput]);
 
-  return { state, steps, result, progress, analyze, reset, savedInput, setSavedInput };
+  return { state, steps, result, progress, analyze, reset, loadResult, savedInput, setSavedInput };
 }
