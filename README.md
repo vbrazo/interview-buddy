@@ -4,11 +4,11 @@ AI-powered interview preparation tool that transforms job descriptions into comp
 
 ## Tech Stack
 
-| Layer    | Technology                                          |
-| -------- | --------------------------------------------------- |
-| Frontend | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui |
-| Backend  | Python 3.11+, FastAPI, uvicorn                      |
-| APIs     | You.com Search API, You.com Chat Completions        |
+| Layer    | Technology                                             |
+| -------- | ------------------------------------------------------ |
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui    |
+| Backend  | Python 3.11+, FastAPI, uvicorn                         |
+| APIs     | You.com Search API, You.com Express Agent (Agents API) |
 
 ## Quick Start
 
@@ -59,33 +59,45 @@ Open **http://localhost:8080** and paste a job description to get started.
 1. **Paste a job description** into the input textarea.
 2. The backend **extracts metadata** (company name, role title, key technologies).
 3. **You.com Search API** is called to research the company and each technology.
-4. **You.com Chat Completions** synthesises all research into a structured report.
+4. **You.com Express Agent** synthesises all research into a structured report.
 5. The frontend streams progress in real-time via **Server-Sent Events**.
 6. You get a full interview prep report you can save, copy, or export as Markdown.
 
 ## Project Structure
+
+The backend follows an **MVC-style layout**: models, views, controllers, with services (orchestration + integrations), helpers (parsers, prompts, SSE), and repositories (data access).
 
 ```
 interview-buddy/
 ├── backend/
 │   ├── app/
 │   │   ├── __init__.py
-│   │   ├── main.py          # App factory, middleware, lifespan
-│   │   ├── config.py        # Centralised settings (env vars)
-│   │   ├── routes.py        # API route handlers
-│   │   ├── models/          # Pydantic models (split by domain)
-│   │   │   ├── __init__.py  # Re-exports all models
-│   │   │   ├── requests.py  # PrepareRequest
+│   │   ├── main.py              # App factory, middleware, lifespan
+│   │   ├── config.py            # Centralised settings (env vars)
+│   │   ├── controllers/         # HTTP handlers (MVC Controller)
+│   │   │   ├── routes.py        # Assembles API router under /api
+│   │   │   ├── health.py        # GET /health
+│   │   │   ├── history.py       # History CRUD
+│   │   │   └── prepare.py       # POST /prepare
+│   │   ├── views/               # Response shaping (MVC View)
+│   │   │   ├── health.py
+│   │   │   ├── history.py
+│   │   │   └── prepare.py
+│   │   ├── models/               # Pydantic models (MVC Model)
+│   │   │   ├── __init__.py      # Re-exports all models
+│   │   │   ├── requests.py      # PrepareRequest
 │   │   │   ├── job_metadata.py
-│   │   │   ├── search.py    # SearchHit
-│   │   │   └── analysis.py  # AnalysisResult, SavedAnalysis, etc.
-│   │   └── services/        # Business logic and integrations
-│   │       ├── job_parser.py    # Job description metadata extractor
-│   │       ├── history_store.py # In-memory store for /api/history
-│   │       ├── you_client.py    # You.com API client (Search + Chat)
-│   │       ├── pipeline.py      # Analysis pipeline orchestrator
-│   │       ├── prompts.py       # LLM prompt templates
-│   │       └── sse.py           # SSE event formatting helpers
+│   │   │   ├── search.py        # SearchHit
+│   │   │   └── analysis.py      # AnalysisResult, SavedAnalysis, etc.
+│   │   ├── services/            # Orchestration and external APIs
+│   │   │   ├── pipeline.py      # Analysis pipeline orchestrator
+│   │   │   └── you_client.py    # You.com API client (Search + Express Agent)
+│   │   ├── helpers/             # Parsers, prompts, SSE formatting
+│   │   │   ├── job_parser.py    # Job description metadata extractor
+│   │   │   ├── prompts.py       # LLM prompt templates
+│   │   │   └── sse.py           # SSE event formatting
+│   │   └── repositories/        # Data access
+│   │       └── history_store.py # In-memory store for /api/history
 │   ├── requirements.txt
 │   └── .env.example
 ├── src/
@@ -141,14 +153,14 @@ Tests use mocks for the You.com API; no real API key is needed in CI (a dummy ke
 The backend uses the [documented You.com APIs](https://documentation.you.com/):
 
 - **Search** — Tries `GET https://ydc-index.io/v1/search` (query, count). If that returns 403, it falls back to the legacy `GET https://api.ydc-index.io/search` (query, num_web_results). Both use the `X-API-Key` header.
-- **Synthesis** — `POST https://chat-api.you.com/smart` (Smart API, legacy) with `X-API-Key` and body `{ query, chat_id, instructions }` to produce the structured interview prep JSON.
+- **Synthesis** — `POST https://api.you.com/v1/agents/runs` (Express Agent) with `Authorization: Bearer <key>` and body `{ agent: "express", input, stream: false }` to produce the structured interview prep JSON.
 
-Get a free API key at [you.com/platform](https://you.com/platform). For Smart API access, you may need to contact [api@you.com](mailto:api@you.com) if you see 403 on the `/smart` endpoint.
+Get a free API key at [you.com/platform](https://you.com/platform).
 
 ### Troubleshooting 403 / 404
 
 - **403 on Search** — Ensure your key is from [you.com/platform](https://you.com/platform). The app will automatically retry with the legacy search URL. You can force the legacy endpoint by setting `YOU_SEARCH_URL=https://api.ydc-index.io/search` in `.env` (and the client will use `num_web_results` for that URL).
-- **404 on synthesis** — The app uses the Smart API at `chat-api.you.com/smart`, not `api.you.com/v1/chat/completions`. If you still see 404, check that your key has Smart/Research access or email [api@you.com](mailto:api@you.com).
+- **404 on synthesis** — The app uses the Express Agent at `api.you.com/v1/agents/runs`. If you see 404 or 403, check that your key has access to the Agents API or contact [api@you.com](mailto:api@you.com).
 
 ## Heroku Deployment (Full-Stack)
 

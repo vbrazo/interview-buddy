@@ -1,10 +1,10 @@
-"""Unit tests for app.job_parser."""
+"""Unit tests for app.helpers.job_parser."""
 
 from __future__ import annotations
 
 import pytest
 
-from app.services.job_parser import extract_metadata
+from app.helpers.job_parser import extract_metadata
 
 
 def test_extract_company_at_pattern():

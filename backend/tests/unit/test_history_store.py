@@ -1,11 +1,11 @@
-"""Unit tests for app.history_store."""
+"""Unit tests for app.repositories.history_store."""
 
 from __future__ import annotations
 
 import pytest
 
 from app.models import AnalysisResult, SavedAnalysis
-from app.services.history_store import clear_store, delete, get_by_id, list_all, save
+from app.repositories.history_store import clear_store, delete, get_by_id, list_all, save
 
 
 def _minimal_result(company: str = "Acme") -> AnalysisResult:

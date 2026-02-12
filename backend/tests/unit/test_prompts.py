@@ -1,9 +1,9 @@
-"""Unit tests for app.prompts."""
+"""Unit tests for app.helpers.prompts."""
 
 from __future__ import annotations
 
 from app.models import SearchHit
-from app.services.prompts import build_synthesis_prompt
+from app.helpers.prompts import build_synthesis_prompt
 
 
 def test_build_synthesis_prompt_contains_job_description():

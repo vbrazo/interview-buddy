@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.models import AnalysisResult
-from app.services.history_store import clear_store
+from app.repositories.history_store import clear_store
 
 
 @pytest.fixture(autouse=True)

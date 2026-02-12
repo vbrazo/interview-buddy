@@ -14,9 +14,9 @@ from typing import AsyncGenerator
 from app.config import settings
 from app.models import AnalysisResult, SearchHit
 from app.services import you_client
-from app.services.job_parser import extract_metadata
-from app.services.prompts import build_synthesis_prompt
-from app.services.sse import (
+from app.helpers.job_parser import extract_metadata
+from app.helpers.prompts import build_synthesis_prompt
+from app.helpers.sse import (
     error_event,
     progress_event,
     result_event,
